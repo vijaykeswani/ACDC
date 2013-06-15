@@ -13,12 +13,12 @@ bigram_count = {}
 wordtag_estimate ={}
 bigram_estimate ={}
 unigram_estimate={}
-for i in range(1,10):
+for i in range(1,30):
 	if(i<10):
 		num="0"+str(i)
 	else:
 		num=str(i)
-	print "treebank/tagged/wsj_00"+num+".pos"
+	#print "treebank/tagged/wsj_00"+num+".pos"
 	with open("treebank/tagged/wsj_00"+num+".pos") as f:
 		content=f.readlines()
 	prev="*"
@@ -49,7 +49,6 @@ val=["","",""]
 db = MySQLdb.connect("localhost","root",password,"ACDC" )
 cursor = db.cursor()
 	
-'''
 #print "\nword_tag...."
 for key, values in word_tag.iteritems() :
 	#print key, values
@@ -58,14 +57,14 @@ for key, values in word_tag.iteritems() :
 	c = Counter(values)
 	for item1, item2 in c.iteritems():
 		item1=item1.replace("'","")
-		print item1,item2,key
+		#print item1,item2,key
 		sql="INSERT INTO word_tag(word, tag, count) VALUES ('%s','%s', %d)" % (key,item1,item2)
         	cursor.execute(sql)
         	db.commit()
 #print "\nword_count..."
 
 for key, value in word_count.iteritems():
-	print key, value
+	#print key, value
 	key=key.replace("'","");
 	key=key.replace("\\","");
 	sql="INSERT INTO word_count(word, count) VALUES ('%s', %d)" % (key,value)
@@ -73,7 +72,7 @@ for key, value in word_count.iteritems():
    	db.commit()
 #print "\ntag_count..."
 for key, value in tag_count.iteritems():
-	print key, value
+	#print key, value
 	key=key.replace("'","");
 	key=key.replace("\\","");
 	sql="INSERT INTO tag_count(tag, count) VALUES ('%s', %d)" % (key,value)
@@ -87,8 +86,7 @@ for key, value in bigram_count.iteritems():
 	sql="INSERT INTO bigram_count(firstword,lastword, count) VALUES ('%s', '%s', %d)" % (key[:pos],key[pos+1:],value)
         cursor.execute(sql)
         db.commit()
-	print key[:pos],key[pos+1:],value
- '''
+	#print key[:pos],key[pos+1:],value
 
 for key, values in word_tag.iteritems() :
         c = Counter(values)
@@ -103,13 +101,13 @@ for key, value in wordtag_estimate.iteritems() :
 	pos=key.index('~')
 	key=key.replace("'","");
         key=key.replace("\\","");
-        print key,value
+        #print key,value
 	sql="INSERT INTO wordtag_estimate(word,tag, count) VALUES ('%s', '%s', %f)" % (key[:pos],key[pos+1:],value)
         cursor.execute(sql)
         db.commit()
 for key, value in bigram_count.iteritems():
         pos=key.index('~')
-        print key[:pos],key[pos+1:],value
+        #print key[:pos],key[pos+1:],value
 	c=float(value)
 	for key1, value1 in tag_count.iteritems():
 		if(key[pos+1:]==key1):
@@ -119,7 +117,7 @@ for key, value in bigram_estimate.iteritems() :
 	pos=key.index('~')
         key=key.replace("'","");
         key=key.replace("\\","");
-        print key,value
+        #print key,value
         sql="INSERT INTO bigram_estimate(firstword,lastword, count) VALUES ('%s', '%s', %f)" % (key[:pos],key[pos+1:],value)
         cursor.execute(sql)
         db.commit()	
@@ -133,7 +131,7 @@ for key, value in tag_count.iteritems():
 for key, value in unigram_estimate.iteritems() :
         key=key.replace("'","");
         key=key.replace("\\","");
-        print key,value
+        #print key,value
         sql="INSERT INTO unigram_estimate(word, count) VALUES ('%s', %f)" % (key,value)
         cursor.execute(sql)
         db.commit()
