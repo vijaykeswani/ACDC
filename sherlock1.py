@@ -1,3 +1,4 @@
+#/usr/bin/env python
 import MySQLdb
 with open(".variables") as f:
         content=f.readlines()
