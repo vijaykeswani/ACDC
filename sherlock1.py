@@ -1,38 +1,45 @@
-#/usr/bin/env python
+#/usr/bin/python
 import MySQLdb
-with open(".variables") as f:
-        content=f.readlines()
-password=content[0][:-1]
+
 tags=[]
 wordtags={}
 bigrams={}
 unigrams={}
 viterbi_list={}
 root="treebank/raw/wsj_"
-number="0004"
+number="0024"
 base_prob=1000000000000000000000
+words=[]
 
 def dbconnect():
 	global tags, wordtags,bigrams,unigrams
+
+	with open(".variables") as f:
+	        content=f.readlines()
+		password=content[0][:-1]
+
 	db = MySQLdb.connect("localhost","root",password,"ACDC" )
 	cursor = db.cursor()
+
 	sql="select tag from tag_count"
 	cursor.execute(sql)
 	results = cursor.fetchall()
-	for value in results:
-	                        tags.append(value[0])
+	for value in results:	tags.append(value[0])
+
 	sql="select * from wordtag_estimate"
 	cursor.execute(sql)
 	results = cursor.fetchall()
 	for value in results:
 	                        temp=value[0]+"~"+value[1]
 	                        wordtags[temp]=value[2]
+
 	sql="select * from bigram_estimate"
 	cursor.execute(sql)
 	results = cursor.fetchall()
 	for value in results:
 	                        temp=value[0]+"~"+value[1]
 	                        bigrams[temp]=value[2]
+
 	sql="select * from unigram_estimate"
 	cursor.execute(sql)
 	results = cursor.fetchall()
@@ -49,7 +56,15 @@ def isnumber(string):
 		float(string)
 		return 1
 	except ValueError:
-		return 0
+			if "," in string:
+				stringlets=string.split(",")
+				for stringlet in stringlets:
+					try:
+						float(stringlet)
+					except ValueError:
+						return 0
+				return 1
+			return 0
 
 def append_to_words(word):
 				global words
@@ -133,31 +148,38 @@ def viterbi(n,tag):
 		emission_parameter=wordtag_prob(words[n],tag)
 
 		mymax=max2(mymax,recursion_parameter * tuned_prob * emission_parameter)
-
+	
+	if(mymax>0): print words[n],tag,str(mymax)
 	viterbi_list[viterbi_list_key]=mymax
 	return mymax
 
 
-dbconnect()
+def init():
+	dbconnect()
 
-filename=root+number;
-with open(filename) as f:
-	content=f.readlines()
-words=[]
-counter=0
-for lines in content:
+
+def main():
+	init()
+	filename=root+number;
+	with open(filename) as f:
+		content=f.readlines()
+	global words
+	counter=0
+	for lines in content:
+		
+		if(lines!='\n' and lines!=".START \n"):
+			counter+=1
+			line=lines[:-1]
+			for word1 in line.split('/'):
+				for word in word1.split(' '):
+					append_to_words(word)
 	
-	if(lines!='\n' and lines!=".START \n"):
-		counter+=1
-		line=lines[:-1]
-		for word1 in line.split('/'):
-			for word in word1.split(' '):
-				append_to_words(word)
+			init_viterbi()
+			res=viterbi(len(words)-1,".")
+	
+			if(res>0): print str(counter).ljust(5)+"\tdone! \t["+str(res)+"]"
+			else: print "[ERROR] "+line
+			#raw_input()
+			del words[:]
 
-		init_viterbi()
-		res=viterbi(len(words)-1,".")
-
-		if(res>0): print str(counter).ljust(5)+"\tdone! \t["+str(res)+"]"
-		else: print "[ERROR] "+line
-		#raw_input()
-		del words[:]
+main()
